@@ -94,14 +94,9 @@ export function useBanners(): BannerData {
       .map((banner) => ({ id: banner.id, imageUrl: getPublicUrl(banner.url), title: banner.title, text: banner.noticeText }));
     const noticeBanner = activeBanners.find((banner) => banner.bannerType === 'notice');
     const homeBanners = activeBanners.filter((banner) => banner.bannerType === 'normal').map(asImage);
-    // Older/admin-created rows can all be notices. Keep the home carousel useful
-    // until a dedicated Home banner is uploaded, while excluding tutorial markers.
-    const carouselBanners = homeBanners.length > 0
-      ? homeBanners
-      : noticeList.map((banner) => ({ id: banner.id, imageUrl: banner.imageUrl }));
     return {
       notices: noticeList,
-      normal: carouselBanners,
+      normal: homeBanners,
       tutorial: sortedTutorials.filter((banner) => banner.title !== '__submit_tutorial__').map(asImage),
       submitTutorial: sortedTutorials.filter((banner) => banner.title === '__submit_tutorial__').map(asImage),
       notice: noticeBanner

@@ -7,6 +7,7 @@ import { TX_IMAGE_URLS } from '@/components/v2/HomeTransactions';
 import { TUTORIAL_COVERS } from '@/lib/tutorials';
 import { APP_LOGO } from '@/lib/brand';
 import { resolveCachedImage } from '@/lib/imageCache';
+import { REMOTE_IMAGES } from '@/lib/remoteImages';
 
 const done = new Set<string>();
 
@@ -56,7 +57,15 @@ export function preloadCriticalImages(): Promise<void> {
   const cardArt = Object.values(TEMPLATES).flatMap((byStatus) =>
     Object.values(byStatus).map((template) => template.url),
   );
-  const critical = preloadImages(['/brand/logo.png', APP_LOGO, ...cardArt, ...TX_IMAGE_URLS, '/ui/loading-wave.png']);
+  const critical = preloadImages([
+    '/brand/logo.png',
+    APP_LOGO,
+    REMOTE_IMAGES['https://i.ibb.co/hxbNq00C/Picsart-26-09-14-16-16-00-015.png'],
+    REMOTE_IMAGES['https://i.ibb.co/d4Q6VFrf/Picsart-26-09-14-16-12-00-574.png'],
+    ...cardArt,
+    ...TX_IMAGE_URLS,
+    '/ui/loading-wave.png',
+  ]);
   critical.then(() => { void preloadAppImages(); }).catch(() => undefined);
   return critical;
 }
