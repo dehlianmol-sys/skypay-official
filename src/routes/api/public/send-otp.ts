@@ -48,9 +48,12 @@ export const Route = createFileRoute('/api/public/send-otp')({
           if (!turnstileToken) {
             return json({ success: false, error: 'Please complete the security verification.' }, 200);
           }
-          const turnstileSecret = process.env['TURNSTILE_SECRET_KEY'];
+          // Accept both common Vercel variable names so an existing Cloudflare
+          // secret keeps working without a dashboard rename.
+          const turnstileSecret =
+            process.env['TURNSTILE_SECRET_KEY'] || process.env['CLOUDFLARE_SECRET_KEY'];
           if (!turnstileSecret) {
-            console.error('send-otp: TURNSTILE_SECRET_KEY is not configured.');
+            console.error('send-otp: TURNSTILE_SECRET_KEY/CLOUDFLARE_SECRET_KEY is not configured.');
             return json({ success: false, error: 'Verification is not configured. Please try again later.' }, 200);
           }
           const verifyBody = new URLSearchParams({ secret: turnstileSecret, response: turnstileToken });
