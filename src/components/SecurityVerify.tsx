@@ -4,8 +4,11 @@ declare global {
   interface Window { turnstile?: { render: (el: HTMLElement, opts: Record<string, unknown>) => string; remove: (id: string) => void } }
 }
 
-// Cloudflare Turnstile site key (public). Set VITE_TURNSTILE_SITE_KEY to override.
-const SITE_KEY = (import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined) || '0x4AAAAAAFFObiFbr5kQyqx_';
+// Cloudflare Turnstile site key (public). Keep the legacy name as a fallback.
+const SITE_KEY =
+  (import.meta.env.VITE_CLOUDFLARE_SITE_KEY as string | undefined)
+  || (import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined)
+  || '0x4AAAAAAFFObiFbr5kQyqx_';
 const SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
 function loadScript(): Promise<void> {
