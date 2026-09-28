@@ -11,7 +11,9 @@ import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 
 const OTP_RATE_PREFIX = 'hk_otp_rate_';
 // Paste your Cloudflare Turnstile Site Key into VITE_CLOUDFLARE_SITE_KEY (.env and Vercel env vars).
-const TURNSTILE_SITE_KEY = (import.meta.env.VITE_CLOUDFLARE_SITE_KEY as string | undefined) ?? '';
+const TURNSTILE_SITE_KEY =
+  (import.meta.env.VITE_CLOUDFLARE_SITE_KEY as string | undefined)
+  || '0x4AAAAAAFFObiFbr5kQyqx_';
 
 interface OtpRateRecord { attempts: number; lastRequestedAt: number; currentCooldown: number }
 
@@ -175,14 +177,7 @@ export default function Register({ referralCode }: { referralCode?: string } = {
           <AuthInput icon="user" value={username} onChange={setUsername} placeholder="User Name" maxLength={12} rules={usernameRules(username)} />
           <AuthInput icon="lock" value={password} onChange={setPassword} placeholder="Password" type="password" maxLength={72} rules={passwordRules(password)} />
           <AuthInput icon="phone" value={phone} onChange={(value) => setPhone(value.replace(/\D/g, '').slice(0, 10))} placeholder="Phone" prefix="+91" maxLength={10} rules={phoneRules(phone)} />
-          <div className="hk-input-shell hk-otp-shell">
-            <FieldIcon type="otp" /><input value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" placeholder="OTP Code" maxLength={6} />
-            <button className={`hk-send${/^\d{10}$/.test(phone) && cooldown <= 0 ? ' cp-ready' : ''}`} type="button" onClick={requestOtp} disabled={loading || cooldown > 0}>{cooldown > 0 ? `${cooldown}s` : 'Send'}</button>
-          </div>
-          <AuthInput icon="invite" value={inviteCode} onChange={(value) => setInviteCode(value.replace(/[^A-Za-z0-9]/g, '').slice(0, 20))} placeholder="Invite Code" maxLength={20} />
-        </div>
-        {TURNSTILE_SITE_KEY && (
-          <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0 12px' }}>
             <Turnstile
               ref={turnstileRef}
               siteKey={TURNSTILE_SITE_KEY}
@@ -192,7 +187,12 @@ export default function Register({ referralCode }: { referralCode?: string } = {
               onError={() => setCaptchaToken('')}
             />
           </div>
-        )}
+          <div className="hk-input-shell hk-otp-shell">
+            <FieldIcon type="otp" /><input value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" placeholder="OTP Code" maxLength={6} />
+            <button className={`hk-send${/^\d{10}$/.test(phone) && cooldown <= 0 ? ' cp-ready' : ''}`} type="button" onClick={requestOtp} disabled={loading || cooldown > 0}>{cooldown > 0 ? `${cooldown}s` : 'Send'}</button>
+          </div>
+          <AuthInput icon="invite" value={inviteCode} onChange={(value) => setInviteCode(value.replace(/[^A-Za-z0-9]/g, '').slice(0, 20))} placeholder="Invite Code" maxLength={20} />
+        </div>
         <button className="hk-primary" type="submit" disabled={loading}>Sign Up</button>
       </form>
       {loading && <AppLoading />}
