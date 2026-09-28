@@ -50,12 +50,15 @@ export const Route = createFileRoute('/api/public/send-otp')({
           }
           // Accept the common Cloudflare/Vercel variable names so an existing
           // secret keeps working without a dashboard rename.
-          const turnstileSecret =
-            process.env['TURNSTILE_SECRET_KEY'] ||
-            process.env['CLOUDFLARE_TURNSTILE_SECRET_KEY'] ||
-            process.env['CF_TURNSTILE_SECRET_KEY'] ||
-            process.env['TURNSTILE_SECRET'] ||
-            process.env['CLOUDFLARE_SECRET_KEY'];
+          const requestHost = new URL(request.url).hostname;
+          const isLocalRequest = requestHost === 'localhost' || requestHost === '127.0.0.1';
+          const turnstileSecret = isLocalRequest
+            ? '1x0000000000000000000000000000000AA'
+            : process.env['TURNSTILE_SECRET_KEY'] ||
+              process.env['CLOUDFLARE_TURNSTILE_SECRET_KEY'] ||
+              process.env['CF_TURNSTILE_SECRET_KEY'] ||
+              process.env['TURNSTILE_SECRET'] ||
+              process.env['CLOUDFLARE_SECRET_KEY'];
           if (!turnstileSecret) {
             console.error('send-otp: Cloudflare Turnstile secret is not configured.');
             return json({ success: false, error: 'Verification is not configured. Please try again later.' }, 200);

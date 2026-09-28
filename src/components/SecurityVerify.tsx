@@ -5,10 +5,15 @@ declare global {
 }
 
 // Cloudflare Turnstile site key (public). Keep the legacy name as a fallback.
-const SITE_KEY =
+const CONFIGURED_SITE_KEY =
   (import.meta.env.VITE_CLOUDFLARE_SITE_KEY as string | undefined)
   || (import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined)
   || '0x4AAAAAAFFObiFbr5kQyqx_';
+// Cloudflare's official always-pass key is limited to local development.
+// Real preview and production hosts always use the configured site key.
+const SITE_KEY = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
+  ? '1x00000000000000000000AA'
+  : CONFIGURED_SITE_KEY;
 const SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
 function loadScript(): Promise<void> {
@@ -33,7 +38,13 @@ export default function SecurityVerify({ open, onVerified, onClose }: { open: bo
     setReady(false);
     loadScript().then(() => {
       if (!alive || !box.current || !window.turnstile) return;
-      id = window.turnstile.render(box.current, { sitekey: SITE_KEY, theme: 'light', callback: (t: string) => setTimeout(() => cb.current(t), 400) });
+      id = window.turnstile.render(box.current, {
+        sitekey: SITE_KEY,
+        theme: 'light',
+        callback: (t: string) => setTimeout(() => cb.current(t), 400),
+        'error-callback': () => { if (alive) setReady(false); },
+        'expired-callback': () => { if (alive) setReady(false); },
+      });
       if (alive) setReady(true);
     }).catch(() => {});
     return () => { alive = false; if (id && window.turnstile) window.turnstile.remove(id); };
