@@ -153,6 +153,11 @@ export default function Banners() {
             {previewUrl && (
               <img src={previewUrl} alt="Preview" className="w-full h-32 object-cover rounded-lg mt-3 border border-slate-200" />
             )}
+            {bannerType === 'normal' && (
+              <p className="mt-2 text-xs text-slate-400">
+                Best home banner size: 1280 × 706 px (640:353, about 1.81:1).
+              </p>
+            )}
 
             <div className="mt-4">
               <p className="text-sm font-medium text-slate-700 mb-2">Banner type</p>

@@ -6,7 +6,6 @@ import { useToast } from '@/lib/toast';
 import AuthHints, { usernameRules, phoneRules, passwordRules, isInvalid } from '@/components/AuthHints';
 import { normalizeRefCode, REF_CODE_KEY } from '@/lib/referral';
 import { generateOtp, sendOtpSms } from '@/lib/otp';
-import SecurityVerify from '@/components/SecurityVerify';
 import AppLoading from '@/components/AppLoading';
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 
@@ -78,13 +77,13 @@ export default function Register({ referralCode }: { referralCode?: string } = {
     setError(message);
   };
 
-  const [verifyOpen, setVerifyOpen] = useState(false);
   useEffect(() => { if (error) { toast(error, 'error'); setError(''); } }, [error]);
   const requestOtp = () => {
     if (loading || cooldown > 0) return;
     const invalid = validateBase();
     if (invalid) return fail(invalid);
-    setVerifyOpen(true);
+    if (!captchaToken) return fail('Please complete the security verification first.');
+    void sendOtp(captchaToken);
   };
 
   const sendOtp = async (turnstileToken?: string) => {
@@ -115,7 +114,12 @@ export default function Register({ referralCode }: { referralCode?: string } = {
       toast('OTP sent successfully', 'success');
     } catch {
       fail('Could not send OTP. Please check your connection.');
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+      // The OTP endpoint consumes this token. Reset for the later Sign Up request.
+      setCaptchaToken('');
+      turnstileRef.current?.reset();
+    }
   };
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -191,7 +195,6 @@ export default function Register({ referralCode }: { referralCode?: string } = {
         )}
         <button className="hk-primary" type="submit" disabled={loading}>Sign Up</button>
       </form>
-      <SecurityVerify open={verifyOpen} onClose={() => setVerifyOpen(false)} onVerified={(token) => { setVerifyOpen(false); void sendOtp(token); }} />
       {loading && <AppLoading />}
     </main>
   );

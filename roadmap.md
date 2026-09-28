@@ -1,6 +1,6 @@
-- [ ] Fix OTP security verification so clicking Send completes and sends the OTP.
-- [ ] Fix Supabase home banner loading and confirm the correct upload ratio.
-- [ ] Reduce the gap between the two home statistics amounts by half.
+- [x] Fix OTP security verification so clicking Send completes and sends the OTP.
+- [x] Fix Supabase home banner loading and confirm the correct upload ratio.
+- [x] Reduce the gap between the two home statistics amounts by half.
 - [x] Make the splash logo appear immediately and rebalance the two splash phases.
 - [x] Keep the signed-in success treatment visible through the authentication redirect.
 - [x] Diagnose the Cloudflare/custom-domain status.
