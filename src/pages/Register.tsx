@@ -8,8 +8,11 @@ import { normalizeRefCode, REF_CODE_KEY } from '@/lib/referral';
 import { generateOtp, sendOtpSms } from '@/lib/otp';
 import SecurityVerify from '@/components/SecurityVerify';
 import AppLoading from '@/components/AppLoading';
+import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 
 const OTP_RATE_PREFIX = 'hk_otp_rate_';
+// Paste your Cloudflare Turnstile Site Key into VITE_CLOUDFLARE_SITE_KEY (.env and Vercel env vars).
+const TURNSTILE_SITE_KEY = (import.meta.env.VITE_CLOUDFLARE_SITE_KEY as string | undefined) ?? '';
 
 interface OtpRateRecord { attempts: number; lastRequestedAt: number; currentCooldown: number }
 
@@ -44,6 +47,8 @@ export default function Register({ referralCode }: { referralCode?: string } = {
   const [error, setError] = useState('');
   const [cooldown, setCooldown] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [captchaToken, setCaptchaToken] = useState('');
+  const turnstileRef = useRef<TurnstileInstance | undefined>(undefined);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -121,6 +126,7 @@ export default function Register({ referralCode }: { referralCode?: string } = {
     if (invalid) return setError(invalid);
     if (!sentOtp) return setError('Please send the OTP first.');
     if (otp !== sentOtp) return setError('Invalid OTP code.');
+    if (TURNSTILE_SITE_KEY && !captchaToken) return setError('Please complete the captcha verification.');
     setLoading(true);
     const invite = normalizeRefCode(inviteCode);
     try {
@@ -130,10 +136,11 @@ export default function Register({ referralCode }: { referralCode?: string } = {
       ]);
       if (!agent && !inviter) return setError('Please enter a valid invitation code.');
       let authUserId: string | null = null;
-      const { data: authData } = await supabase.auth.signUp({
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: phoneToAuthEmail(phone), password,
-        options: { data: { username, phone, referral_code: invite } },
+        options: { data: { username, phone, referral_code: invite }, captchaToken: captchaToken || undefined },
       });
+      if (signUpError && /captcha/i.test(signUpError.message)) return setError('Captcha verification failed. Please try again.');
       authUserId = authData.user?.id ?? null;
       const result = await register(username.trim(), phone, password, invite, authUserId);
       if (!result.ok) return setError(result.message);
@@ -145,7 +152,12 @@ export default function Register({ referralCode }: { referralCode?: string } = {
       navigate('/login', { replace: true });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Registration failed.');
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+      // Turnstile tokens are single-use — get a fresh one for any retry.
+      setCaptchaToken('');
+      turnstileRef.current?.reset();
+    }
   };
 
   return (
@@ -165,6 +177,18 @@ export default function Register({ referralCode }: { referralCode?: string } = {
           </div>
           <AuthInput icon="invite" value={inviteCode} onChange={(value) => setInviteCode(value.replace(/[^A-Za-z0-9]/g, '').slice(0, 20))} placeholder="Invite Code" maxLength={20} />
         </div>
+        {TURNSTILE_SITE_KEY && (
+          <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={TURNSTILE_SITE_KEY}
+              options={{ theme: 'auto', size: 'flexible' }}
+              onSuccess={setCaptchaToken}
+              onExpire={() => setCaptchaToken('')}
+              onError={() => setCaptchaToken('')}
+            />
+          </div>
+        )}
         <button className="hk-primary" type="submit" disabled={loading}>Sign Up</button>
       </form>
       <SecurityVerify open={verifyOpen} onClose={() => setVerifyOpen(false)} onVerified={(token) => { setVerifyOpen(false); void sendOtp(token); }} />
