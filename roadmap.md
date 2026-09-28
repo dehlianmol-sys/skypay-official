@@ -1,6 +1,7 @@
-- [x] Fix OTP security verification so clicking Send completes and sends the OTP.
-- [x] Fix Supabase home banner loading and confirm the correct upload ratio.
-- [x] Reduce the gap between the two home statistics amounts by half.
+- [ ] Verify OTP sending through Cloudflare and the SMS provider end to end.
+- [ ] Keep notice banners separate from the Home carousel.
+- [ ] Restore the original ₹ amount positions and verify the signed-in dashboard.
+- [ ] Preload the core dashboard artwork before Home appears.
 - [x] Make the splash logo appear immediately and rebalance the two splash phases.
 - [x] Keep the signed-in success treatment visible through the authentication redirect.
 - [x] Diagnose the Cloudflare/custom-domain status.
