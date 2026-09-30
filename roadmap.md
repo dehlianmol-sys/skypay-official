@@ -1,6 +1,7 @@
-- [x] Verify OTP sending through Cloudflare and the SMS provider end to end.
+- [ ] Verify registration OTP through the existing Supabase send-otp function end to end.
 - [x] Keep notice banners separate from the Home carousel.
-- [x] Restore the original ₹ amount positions and verify the signed-in dashboard.
+- [ ] Place deposit and withdrawal amounts directly beside their ₹ symbols and verify the signed-in dashboard.
+- [ ] Confirm why no uploaded Home banner is returned without mixing notice banners into the carousel.
 - [x] Preload the core dashboard artwork before Home appears.
 - [x] Make the splash logo appear immediately and rebalance the two splash phases.
 - [x] Keep the signed-in success treatment visible through the authentication redirect.

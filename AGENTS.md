@@ -15,3 +15,4 @@
 - Use AppLoading as the single full-screen loading and success treatment across authentication, user, and admin flows so feedback stays visually consistent.
 - Mount sign-in success feedback at the root for one second so authentication redirects cannot remove it early.
 - Use Cloudflare's official always-pass Turnstile keys only on localhost; preview and production must use the configured real site and secret keys.
+- Send registration SMS through the existing Supabase `send-otp` function so Vercel does not need duplicate SMS or Turnstile secrets.
