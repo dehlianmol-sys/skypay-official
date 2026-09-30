@@ -58,7 +58,7 @@ export const css = `
     .balance-card:has(.detail-button:focus-visible) { outline: 3px solid #2469dc; outline-offset: 4px; }
     .stats-card { aspect-ratio: 516 / 110; background: #079b63; }
     .stats-card > img { width: 124.031008%; left: -12.015504%; top: -240.909091%; }
-    .stat-value { position: absolute; top: 72%; width: 25%; transform: translateY(-50%); color: #fff; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 20px; font-size: 5.3cqw; line-height: 1; }
+    .stat-value { position: absolute; top: 72%; transform: translateY(-50%); color: #fff; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 20px; font-size: 5.3cqw; line-height: 1; white-space: nowrap; }
     .deposit-value { left: 25.6%; }
     .withdrawal-value { left: 78%; }
     .actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding: 0 0 1px; }

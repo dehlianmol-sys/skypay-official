@@ -1,16 +1,17 @@
 /**
  * Skypay — single place where the app asks for an SMS OTP.
  *
- * The request goes to this app's own endpoint (`/api/public/send-otp`), which
- * holds the SMS provider key server side (SMS_API_KEY). No Supabase Edge
- * Function is involved, so the flow keeps working in preview, on the published
- * site and in the exported build.
+ * The request goes to the existing Supabase `send-otp` function. That function
+ * owns the SMS provider configuration, while the browser sends only the phone,
+ * generated OTP, approved sender template and Cloudflare token.
  *
  * senderType picks the DLT approved template:
  *   FYDBZR -> registration OTP
  *   GUERAR -> forgot / reset password OTP
  *   DASSAM -> generic login OTP (provider default)
  */
+import { supabase } from './supabase';
+
 export type OtpSenderType = 'FYDBZR' | 'GUERAR' | 'DASSAM';
 
 export function generateOtp(): string {
@@ -24,17 +25,18 @@ export async function sendOtpSms(
   turnstileToken?: string,
 ): Promise<{ ok: boolean; error?: string }> {
   try {
-    const response = await fetch('/api/public/send-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone, otp, senderType, turnstileToken }),
+    const { data, error } = await supabase.functions.invoke('send-otp', {
+      body: { phone, otp, senderType, turnstileToken },
     });
-    const data = (await response.json().catch(() => null)) as
-      | { success?: boolean; error?: string }
-      | null;
-
-    if (!response.ok || data?.success === false || data?.error) {
-      return { ok: false, error: data?.error ?? 'Could not send OTP. Please try again.' };
+    const result = data as { success?: boolean; error?: string } | null;
+    if (error || result?.success === false || result?.error) {
+      let message = result?.error;
+      if (!message && error && 'context' in error) {
+        const context = error.context as Response | undefined;
+        const responseData = await context?.clone().json().catch(() => null) as { error?: string } | null;
+        message = responseData?.error;
+      }
+      return { ok: false, error: message ?? error?.message ?? 'Could not send OTP. Please try again.' };
     }
     return { ok: true };
   } catch {
